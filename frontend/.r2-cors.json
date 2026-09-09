@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://meeting-intelligence.typescript-cloudflare-project.workers.dev",
+          "http://localhost:8787",
+          "http://localhost:3000"
+        ],
+        "methods": ["PUT", "GET"],
+        "headers": ["Content-Type"]
+      },
+      "maxAgeSeconds": 3600
+    }
+  ]
+}

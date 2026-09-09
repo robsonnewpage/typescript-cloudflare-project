@@ -9,5 +9,13 @@ import type {} from "@opennextjs/cloudflare";
 declare global {
   interface CloudflareEnv {
     ADMIN_TOKEN: string;
+    // Not named CF_ACCOUNT_ID/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY: OpenNext's
+    // own ambient CloudflareEnv augmentation (for its unrelated R2 cache-purge
+    // feature) already declares those exact names as optional, and that merge
+    // wins — these end up typed `string | undefined` no matter what's declared
+    // here. Different names sidestep the collision entirely.
+    R2_TRANSCRIPTS_ACCOUNT_ID: string;
+    R2_TRANSCRIPTS_ACCESS_KEY_ID: string;
+    R2_TRANSCRIPTS_SECRET_ACCESS_KEY: string;
   }
 }

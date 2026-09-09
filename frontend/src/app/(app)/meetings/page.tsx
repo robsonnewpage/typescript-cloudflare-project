@@ -30,19 +30,24 @@ export default async function MeetingsPage() {
           </li>
         ) : (
           meetings.map((meeting) => (
-            <li key={meeting.id} className="rounded-xl border border-border bg-surface p-4">
-              <p className="font-medium text-foreground">{meeting.title}</p>
-              <p className="mt-1 text-sm text-foreground-muted">
-                {new Date(meeting.occurredAt).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}{" "}
-                · {meeting.participants.join(", ")}
-              </p>
-              {!meeting.transcriptKey && (
-                <p className="mt-2 text-xs text-foreground-subtle">No transcript attached yet.</p>
-              )}
+            <li key={meeting.id}>
+              <Link
+                href={`/meetings/${meeting.id}`}
+                className="block rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent hover:bg-surface-hover"
+              >
+                <p className="font-medium text-foreground">{meeting.title}</p>
+                <p className="mt-1 text-sm text-foreground-muted">
+                  {new Date(meeting.occurredAt).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}{" "}
+                  · {meeting.participants.join(", ")}
+                </p>
+                <p className="mt-2 text-xs text-foreground-subtle">
+                  {meeting.transcriptKey ? "Transcript attached" : "No transcript attached yet"}
+                </p>
+              </Link>
             </li>
           ))
         )}

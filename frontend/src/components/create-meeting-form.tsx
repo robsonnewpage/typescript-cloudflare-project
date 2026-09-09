@@ -70,10 +70,9 @@ export function CreateMeetingForm() {
         )}
       </div>
 
-      <div className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-foreground-muted">
-        Transcript upload isn&apos;t wired up yet — it needs R2, which isn&apos;t enabled on this account. The meeting
-        record is created now; a transcript can be attached once that&apos;s available.
-      </div>
+      <p className="text-xs text-foreground-subtle">
+        You can attach a transcript on the next screen once the meeting&apos;s created.
+      </p>
 
       <button
         type="submit"

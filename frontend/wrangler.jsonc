@@ -61,10 +61,20 @@
 	"migrations": [
 		{
 			"tag": "v1",
-			"new_sqlite_classes": ["ThreadArbiterDO"]
+			"new_sqlite_classes": [
+				"ThreadArbiterDO"
+			]
 		}
 	],
 	"triggers": {
-		"crons": ["*/15 * * * *"]
-	}
+		"crons": [
+			"*/15 * * * *"
+		]
+	},
+	"r2_buckets": [
+		{
+			"binding": "TRANSCRIPTS",
+			"bucket_name": "meeting-intelligence-transcripts"
+		}
+	]
 }

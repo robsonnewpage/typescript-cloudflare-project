@@ -19,8 +19,8 @@ export async function createMeetingAction(
     return { status: "error", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
-  await createMeeting(parsed.data);
+  const meeting = await createMeeting(parsed.data);
 
   revalidatePath("/meetings");
-  redirect("/meetings");
+  redirect(`/meetings/${meeting.id}`);
 }
