@@ -1,0 +1,70 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	// custom-worker.ts wraps the OpenNext-generated fetch handler so this
+	// Worker can also export a Durable Object class and scheduled().
+	"main": "custom-worker.ts",
+	"name": "meeting-intelligence",
+	"compatibility_date": "2026-09-08",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			// Self-reference service binding, the service name must match the worker name
+			// see https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "meeting-intelligence"
+		}
+	],
+	"images": {
+		// Enable image optimization
+		// see https://opennext.js.org/cloudflare/howtos/image
+		"binding": "IMAGES"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "meeting-intelligence-db",
+			"database_id": "33e9e1c8-7ab7-45a3-911b-ef5f41792431",
+			"migrations_dir": "migrations"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "CACHE",
+			"id": "56ce9f63088949afb5cb82eb8ade9a2d"
+		}
+	],
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "meeting-intelligence-facts",
+			"remote": true
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "THREAD_ARBITER",
+				"class_name": "ThreadArbiterDO"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["ThreadArbiterDO"]
+		}
+	],
+	"triggers": {
+		"crons": ["*/15 * * * *"]
+	}
+}
