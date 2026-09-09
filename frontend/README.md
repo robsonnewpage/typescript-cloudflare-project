@@ -1,3 +1,9 @@
+## Meeting Intelligence
+
+Meeting Intelligence turns a pile of meeting transcripts into a team's shared memory. Upload the WebVTT transcripts that Teams, Zoom, and Whisper export; the system parses them into speaker-attributed turns, indexes them for hybrid (vector + keyword) search, and extracts every decision, commitment, and open thread an LLM can find, each one grounded in the exact excerpt it came from. Ask a question across the whole corpus and get an answer with inline citations, or open the team's inbox of unresolved open threads and see what's still hanging. It's for teams with enough recurring meetings that nobody can hold the whole thread in their head — standups, retros, client syncs. At its heart is a contested write: an open thread sits unclaimed until someone resolves it, and when two teammates both try to close out the same one, only one resolution wins — the other finds out immediately who beat them to it, and a retried submission never produces a duplicate.
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

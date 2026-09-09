@@ -1,0 +1,1 @@
+ALTER TABLE `facts` ADD `embedded_at` text;
