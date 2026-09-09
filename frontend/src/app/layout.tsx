@@ -13,8 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Acme — Join the Waitlist",
-  description: "Acme helps small teams ship faster. Join the waitlist to be first in line.",
+  title: "Meeting Intelligence",
+  description:
+    "Ask questions across your meeting transcripts and get answers with citations. Resolve open threads before they're forgotten.",
+  other: {
+    "color-scheme": "dark",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
+/*
+ * Committed to a single dark theme — no prefers-color-scheme flip. The
+ * earlier version of this file relied on the media query alone, with no
+ * dark: variants anywhere in the app, so light-mode utility classes (e.g.
+ * text-gray-900) sat unreadable on a dark body. This time every color in
+ * every component reads from these tokens directly, so there is no
+ * light-mode fallback left anywhere to go stale.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #08080c;
+  --surface: #131318;
+  --surface-hover: #1b1b22;
+  --border: #26262f;
+  --border-strong: #37373f;
+  --foreground: #f3f3f6;
+  --foreground-muted: #9a9aa8;
+  --foreground-subtle: #6c6c7a;
+
+  --accent: #8b7bf6;
+  --accent-strong: #a594ff;
+  --accent-foreground: #0a0a0f;
+  --accent-muted: #201c3d;
+
+  --success: #4ade80;
+  --success-muted: #16281f;
+  --warning: #fbbf24;
+  --warning-muted: #332813;
+  --danger: #fb7185;
+  --danger-muted: #331b21;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-muted: var(--accent-muted);
+
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
+  --color-danger: var(--danger);
+  --color-danger-muted: var(--danger-muted);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

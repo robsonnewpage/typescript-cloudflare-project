@@ -1,60 +1,68 @@
-import { WaitlistForm } from "@/components/waitlist-form";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex min-h-full flex-col bg-white">
-      <header className="border-b border-gray-200">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <span className="text-lg font-semibold text-gray-900">Acme</span>
-          <a
-            href="#waitlist"
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+    <div className="flex min-h-full flex-col">
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-4 sm:px-6">
+          <span className="flex shrink-0 items-center gap-2 text-base font-semibold whitespace-nowrap text-foreground sm:text-lg">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-accent shadow-[0_0_12px_var(--accent)]" />
+            Meeting Intelligence
+          </span>
+          <Link
+            href="/threads"
+            className="shrink-0 whitespace-nowrap rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground shadow-[0_0_20px_-4px_var(--accent)] transition-opacity hover:opacity-90"
           >
-            Join waitlist
-          </a>
+            Open the app
+          </Link>
         </div>
       </header>
 
       <main className="flex-1">
-        <section className="mx-auto max-w-5xl px-6 py-24 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-            Ship your ideas, not your infrastructure.
+        <section className="relative overflow-hidden px-6 py-24 text-center">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 opacity-40 blur-3xl"
+            style={{
+              background:
+                "radial-gradient(60% 60% at 50% 0%, var(--accent) 0%, transparent 70%)",
+            }}
+          />
+          <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight text-foreground text-balance sm:text-5xl">
+            Every open question from your meetings, answered before it is{" "}
+            <span className="bg-gradient-to-r from-accent to-accent-strong bg-clip-text text-transparent">
+              forgotten
+            </span>
+            .
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
-            Acme gives small teams the tools to launch fast without spending weeks
-            wiring up the boring parts. Sign up to be first in line.
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-foreground-muted">
+            Upload the transcripts. Meeting Intelligence indexes them for search, pulls out every
+            decision, commitment, and open thread, and gives your team one inbox to close the loop
+            on what is still open.
           </p>
         </section>
 
         <section className="mx-auto max-w-5xl px-6 py-16">
-          <div className="grid gap-8 sm:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-3">
             <Feature
-              title="Fast by default"
-              description="Every project starts pre-wired for speed, so you spend time on your product instead of your setup."
+              title="Ask across every transcript"
+              description="Get answers with inline citations back to the exact moment someone said it."
             />
             <Feature
-              title="Typed end to end"
-              description="From the API to the UI, your data keeps its shape the whole way through."
+              title="Nothing falls through the cracks"
+              description="Every open thread a meeting produced lands in one inbox, so the right person can close it out."
             />
             <Feature
-              title="Built for small teams"
-              description="No unnecessary process. Just the tools you need to move quickly and confidently."
+              title="One resolution, no duplicates"
+              description="When two teammates both go to resolve the same open thread, only one resolution sticks — the other finds out immediately."
             />
-          </div>
-        </section>
-
-        <section id="waitlist" className="mx-auto max-w-md px-6 py-16">
-          <h2 className="text-center text-2xl font-semibold text-gray-900">Join the waitlist</h2>
-          <p className="mt-2 text-center text-gray-600">You will be the first to know when we launch.</p>
-          <div className="mt-8">
-            <WaitlistForm />
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-gray-200">
-        <div className="mx-auto max-w-5xl px-6 py-8 text-center text-sm text-gray-500">
-          Acme. Built for training purposes only.
+      <footer className="border-t border-border">
+        <div className="mx-auto max-w-5xl px-6 py-8 text-center text-sm text-foreground-subtle">
+          Meeting Intelligence. Built for Project JEDI training.
         </div>
       </footer>
     </div>
@@ -63,9 +71,9 @@ export default function Home() {
 
 function Feature({ title, description }: { title: string; description: string }) {
   return (
-    <div>
-      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-      <p className="mt-2 text-sm text-gray-600">{description}</p>
+    <div className="rounded-xl border border-border bg-surface p-6">
+      <h3 className="text-base font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 text-sm text-foreground-muted">{description}</p>
     </div>
   );
 }
