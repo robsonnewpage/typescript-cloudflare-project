@@ -65,3 +65,16 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}

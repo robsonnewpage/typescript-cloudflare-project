@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { confirmTranscriptUpload, createTranscriptUploadUrl, getTranscriptDownloadUrl } from "@/app/(app)/meetings/[meetingId]/actions";
+import { TranscriptViewer } from "@/components/transcript-viewer";
 
 type Status = "idle" | "uploading" | "error" | "done";
 
@@ -9,6 +10,8 @@ export function TranscriptUpload({ meetingId, transcriptKey }: { meetingId: stri
   const [status, setStatus] = useState<Status>(transcriptKey ? "done" : "idle");
   const [key, setKey] = useState<string | null>(transcriptKey);
   const [error, setError] = useState<string | null>(null);
+  const [viewer, setViewer] = useState<{ url: string } | null>(null);
+  const [openingViewer, setOpeningViewer] = useState(false);
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -39,25 +42,44 @@ export function TranscriptUpload({ meetingId, transcriptKey }: { meetingId: stri
 
   async function handleView() {
     if (!key) return;
-    const url = await getTranscriptDownloadUrl(key);
-    window.open(url, "_blank", "noopener,noreferrer");
+    setOpeningViewer(true);
+    try {
+      const url = await getTranscriptDownloadUrl(key);
+      setViewer({ url });
+    } finally {
+      setOpeningViewer(false);
+    }
   }
 
   if (status === "done" && key) {
     return (
-      <div className="flex items-center justify-between gap-4 rounded-xl border border-success-muted bg-surface p-4">
-        <div>
-          <p className="text-sm font-medium text-foreground">Transcript attached</p>
-          <p className="mt-0.5 text-xs text-foreground-subtle">{key.split("/").pop()}</p>
+      <>
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-success-muted bg-surface p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">Transcript attached</p>
+            <p className="mt-0.5 text-xs text-foreground-subtle">{key.split("/").pop()}</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleView}
+            disabled={openingViewer}
+            className="shrink-0 rounded-full border border-border-strong px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent-strong disabled:opacity-50"
+          >
+            {openingViewer ? (
+              <span className="flex items-center gap-2">
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-foreground/30 border-t-foreground" />
+                Opening…
+              </span>
+            ) : (
+              "View"
+            )}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={handleView}
-          className="shrink-0 rounded-full border border-border-strong px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-accent hover:text-accent-strong"
-        >
-          View
-        </button>
-      </div>
+
+        {viewer && (
+          <TranscriptViewer url={viewer.url} filename={key.split("/").pop() ?? "transcript"} onClose={() => setViewer(null)} />
+        )}
+      </>
     );
   }
 

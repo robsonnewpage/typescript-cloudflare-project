@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { askQuestion } from "@/lib/data/search";
+import { AskForm } from "@/components/ask-form";
 
 // Reads live on every request — a search result page has no business being
 // statically cached.
@@ -18,22 +19,7 @@ export default async function SearchPage(props: PageProps<"/search">) {
         matching.
       </p>
 
-      <form action="/search" method="GET" className="mt-8 flex gap-2">
-        <input
-          type="text"
-          name="q"
-          defaultValue={question}
-          placeholder="Who's chasing the Acme PO number?"
-          required
-          className="min-w-0 flex-1 rounded-full border border-border-strong bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-foreground-subtle focus:border-accent focus:outline-none"
-        />
-        <button
-          type="submit"
-          className="shrink-0 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground shadow-[0_0_20px_-4px_var(--accent)] transition-opacity hover:opacity-90"
-        >
-          Ask
-        </button>
-      </form>
+      <AskForm defaultValue={question} />
 
       {result && (
         <div className="mt-10 flex flex-col gap-6">
