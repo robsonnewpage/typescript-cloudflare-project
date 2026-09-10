@@ -32,14 +32,15 @@ export function TechStackPanel() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mt-3">
+    <div className="mt-4">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="text-xs text-foreground-subtle transition-colors hover:text-accent-strong"
+        className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-muted px-3 py-1.5 text-xs font-medium text-accent-strong shadow-[0_0_16px_-4px_var(--accent)] transition-all hover:border-accent hover:shadow-[0_0_20px_-2px_var(--accent)]"
       >
-        {open ? "Hide" : "Stats for nerds"}
+        <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_var(--accent)]" />
+        {open ? "Hide stats" : "Stats for nerds"}
       </button>
 
       {open && (
