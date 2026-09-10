@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatCueTime, parseWebVTT, type TranscriptCue } from "@/lib/webvtt";
+
+function normalize(text: string): string {
+  return text.trim().replace(/\s+/g, " ").toLowerCase();
+}
 
 const SPEAKER_COLORS = [
   { text: "text-sky-400", dot: "bg-sky-400" },
@@ -35,9 +39,18 @@ function groupBySpeaker(cues: TranscriptCue[]): Group[] {
   return groups;
 }
 
-export function TranscriptViewer({ url, filename, onClose }: { url: string; filename: string; onClose: () => void }) {
+interface TranscriptViewerProps {
+  url: string;
+  filename: string;
+  onClose: () => void;
+  meetingTitle?: string;
+  highlightQuote?: string;
+}
+
+export function TranscriptViewer({ url, filename, onClose, meetingTitle, highlightQuote }: TranscriptViewerProps) {
   const [status, setStatus] = useState<"loading" | "error" | "done">("loading");
   const [cues, setCues] = useState<TranscriptCue[]>([]);
+  const highlightRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,6 +90,20 @@ export function TranscriptViewer({ url, filename, onClose }: { url: string; file
 
   const groups = useMemo(() => groupBySpeaker(cues), [cues]);
 
+  // Reference equality works here: groupBySpeaker pushes the same cue
+  // objects into each group, it doesn't clone them.
+  const highlightedCue = useMemo(() => {
+    if (!highlightQuote) return null;
+    const target = normalize(highlightQuote);
+    return cues.find((cue) => normalize(cue.text) === target || normalize(cue.text).includes(target)) ?? null;
+  }, [cues, highlightQuote]);
+
+  useEffect(() => {
+    if (status === "done" && highlightedCue && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [status, highlightedCue]);
+
   return (
     <div
       role="dialog"
@@ -91,7 +118,9 @@ export function TranscriptViewer({ url, filename, onClose }: { url: string; file
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
-            <p className="text-xs font-medium tracking-wide text-foreground-subtle uppercase">Transcript</p>
+            <p className="text-xs font-medium tracking-wide text-foreground-subtle uppercase">
+              {meetingTitle ?? "Transcript"}
+            </p>
             <p className="mt-0.5 font-medium text-foreground">{filename}</p>
           </div>
           <button
@@ -146,11 +175,22 @@ export function TranscriptViewer({ url, filename, onClose }: { url: string; file
                         </span>
                       </div>
                       <div className="mt-1 flex flex-col gap-1.5">
-                        {group.cues.map((cue, cueIndex) => (
-                          <p key={cueIndex} className="text-sm leading-relaxed text-foreground">
-                            {cue.text}
-                          </p>
-                        ))}
+                        {group.cues.map((cue, cueIndex) => {
+                          const isHighlighted = cue === highlightedCue;
+                          return (
+                            <p
+                              key={cueIndex}
+                              ref={isHighlighted ? highlightRef : undefined}
+                              className={`text-sm leading-relaxed ${
+                                isHighlighted
+                                  ? "-mx-2 rounded-lg border border-accent bg-accent-muted px-2 py-1 text-foreground"
+                                  : "text-foreground"
+                              }`}
+                            >
+                              {cue.text}
+                            </p>
+                          );
+                        })}
                       </div>
                     </div>
                   </li>

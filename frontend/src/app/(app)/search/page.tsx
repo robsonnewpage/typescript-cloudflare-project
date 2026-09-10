@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { askQuestion } from "@/lib/data/search";
 import { AskForm } from "@/components/ask-form";
+import { FactSourceButton } from "@/components/fact-source-button";
 
 // Reads live on every request — a search result page has no business being
 // statically cached.
@@ -38,22 +39,29 @@ export default async function SearchPage(props: PageProps<"/search">) {
             <h2 className="text-sm font-medium tracking-wide text-foreground-subtle uppercase">Cited facts</h2>
             <ul className="mt-3 flex flex-col gap-3">
               {result.citedFacts.map(({ fact, score }) => (
-                <li key={fact.id} className="rounded-xl border border-border bg-surface p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    {fact.kind === "open_thread" ? (
-                      <Link href={`/threads/${fact.id}`} className="font-medium text-foreground hover:text-accent-strong">
-                        {fact.statement}
-                      </Link>
-                    ) : (
+                <li
+                  key={fact.id}
+                  className="rounded-xl border border-border bg-surface p-4 transition-colors hover:border-accent"
+                >
+                  <FactSourceButton meetingId={fact.meetingId} quote={fact.quote}>
+                    <div className="flex items-start justify-between gap-4">
                       <p className="font-medium text-foreground">{fact.statement}</p>
-                    )}
-                    <span className="shrink-0 rounded-full bg-background px-2 py-0.5 text-xs text-foreground-subtle tabular-nums">
-                      {score.toFixed(2)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-foreground-subtle">
-                    [{fact.id}] {fact.kind}
-                  </p>
+                      <span className="shrink-0 rounded-full bg-background px-2 py-0.5 text-xs text-foreground-subtle tabular-nums">
+                        {score.toFixed(2)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-foreground-subtle">
+                      [{fact.id}] {fact.kind} · view source
+                    </p>
+                  </FactSourceButton>
+                  {fact.kind === "open_thread" && (
+                    <Link
+                      href={`/threads/${fact.id}`}
+                      className="mt-2 inline-block text-xs text-accent-strong hover:underline"
+                    >
+                      Open thread →
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
