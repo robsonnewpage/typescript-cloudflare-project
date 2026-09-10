@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TechStackPanel } from "@/components/tech-stack-panel";
 
 export default function Home() {
   return (
@@ -63,6 +64,7 @@ export default function Home() {
       <footer className="border-t border-border">
         <div className="mx-auto max-w-5xl px-6 py-8 text-center text-sm text-foreground-subtle">
           Meeting Intelligence. Built for Project JEDI training.
+          <TechStackPanel />
         </div>
       </footer>
     </div>
