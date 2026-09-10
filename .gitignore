@@ -1,2 +1,12 @@
+# OS / editor
 .DS_Store
+.vscode/
+.idea/
+
+# in case anything is ever run from the repo root instead of frontend/
 node_modules/
+.wrangler/
+.env
+.env.*
+*.log
+
