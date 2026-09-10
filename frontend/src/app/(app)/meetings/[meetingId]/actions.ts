@@ -1,7 +1,8 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getMeeting, setMeetingTranscriptKey } from "@/lib/data/meetings";
+import { deleteMeeting, getMeeting, setMeetingTranscriptKey } from "@/lib/data/meetings";
 import { createPresignedDownloadUrl, createPresignedUploadUrl, transcriptKeyFor } from "@/lib/r2";
 
 // Called directly (RPC-style), not via a <form action>: the upload itself
@@ -28,4 +29,10 @@ export async function confirmTranscriptUpload(meetingId: string, key: string): P
 
 export async function getTranscriptDownloadUrl(key: string): Promise<string> {
   return createPresignedDownloadUrl(key);
+}
+
+export async function deleteMeetingAction(meetingId: string): Promise<void> {
+  await deleteMeeting(meetingId);
+  revalidatePath("/meetings");
+  redirect("/meetings");
 }
