@@ -48,3 +48,10 @@ cloudflare-env.d.ts
 .wrangler
 .dev.vars*
 !.dev.vars.example
+
+# `wrangler r2 object get <key>` with no -o writes a file mirroring the
+# key's path relative to cwd instead of under .wrangler/ — bit us once
+# already (an empty frontend/meetings/m11/... turned up from an ad hoc
+# debug command). Anchored to frontend/'s own root, not
+# src/app/(app)/meetings/.
+/meetings/

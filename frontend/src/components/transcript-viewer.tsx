@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatCueTime, parseWebVTT, type TranscriptCue } from "@/lib/webvtt";
+import { formatCueTime, parseWebVTT, uniqueSpeakers, type TranscriptCue } from "@/lib/webvtt";
 
 function normalize(text: string): string {
   return text.trim().replace(/\s+/g, " ").toLowerCase();
@@ -80,13 +80,7 @@ export function TranscriptViewer({ url, filename, onClose, meetingTitle, highlig
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
-  const speakerOrder = useMemo(() => {
-    const seen: string[] = [];
-    for (const cue of cues) {
-      if (cue.speaker && !seen.includes(cue.speaker)) seen.push(cue.speaker);
-    }
-    return seen;
-  }, [cues]);
+  const speakerOrder = useMemo(() => uniqueSpeakers(cues), [cues]);
 
   const groups = useMemo(() => groupBySpeaker(cues), [cues]);
 

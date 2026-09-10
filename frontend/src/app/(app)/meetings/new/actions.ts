@@ -1,26 +1,26 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createMeeting } from "@/lib/data/meetings";
-import { createMeetingSchema } from "@/lib/validation/create-meeting-schema";
+import { createMeetingSchema, type CreateMeetingInput } from "@/lib/validation/create-meeting-schema";
+import type { Meeting } from "@/model/meeting";
 
-export interface CreateMeetingState {
-  status: "idle" | "error";
-  fieldErrors?: Partial<Record<"title" | "occurredAt" | "participants", string[]>>;
-}
+export type CreateMeetingResult =
+  | { status: "ok"; meeting: Meeting }
+  | { status: "error"; fieldErrors: Partial<Record<keyof CreateMeetingInput, string[]>> };
 
-export async function createMeetingAction(
-  _prevState: CreateMeetingState,
-  formData: FormData,
-): Promise<CreateMeetingState> {
-  const parsed = createMeetingSchema.safeParse(Object.fromEntries(formData));
+// Called directly (RPC-style), not via a <form action>: creation is the
+// first of two network calls the client makes (create, then attach the
+// transcript via presigned upload), and it needs the new meeting's id
+// before it can even request an upload URL — a plain form-action redirect
+// can't hand that back mid-flow.
+export async function createMeetingAction(input: unknown): Promise<CreateMeetingResult> {
+  const parsed = createMeetingSchema.safeParse(input);
   if (!parsed.success) {
     return { status: "error", fieldErrors: parsed.error.flatten().fieldErrors };
   }
 
   const meeting = await createMeeting(parsed.data);
-
   revalidatePath("/meetings");
-  redirect(`/meetings/${meeting.id}`);
+  return { status: "ok", meeting };
 }
