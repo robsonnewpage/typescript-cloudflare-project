@@ -2,11 +2,26 @@
 .DS_Store
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# secrets — never commit these regardless of where they land
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+*.pem
+*.key
+
+# local database files (D1's local simulator state lives under .wrangler/,
+# already covered below — this is for anything created outside that)
+*.sqlite
+*.sqlite3
+*.db
 
 # in case anything is ever run from the repo root instead of frontend/
 node_modules/
 .wrangler/
-.env
-.env.*
 *.log
 
