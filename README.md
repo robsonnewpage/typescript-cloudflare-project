@@ -8,15 +8,25 @@ Meeting Intelligence turns a pile of meeting transcripts into a team's shared me
 
 ## Architecture
 
-The whole app is one Cloudflare Worker (via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare)), not a split frontend/backend:
+The whole app is one Cloudflare Worker (via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare)), not a split frontend/backend. Everything below runs on the same account, same Worker, no other hosting involved.
 
-- **Routing & data** — Next.js App Router, Server Actions, Zod validation shared between client and server.
-- **D1** (SQLite) — meetings, facts, threads. [Drizzle ORM](https://orm.drizzle.team/), migrations in `frontend/migrations/`.
-- **KV** — read-through cache for the resolved-threads list, busted on write.
-- **Vectorize + Workers AI** — facts are embedded (`@cf/baai/bge-base-en-v1.5`) and indexed on write; `/search` retrieves by cosine similarity and layers a grounded, cited answer on top via Llama (`@cf/meta/llama-3.1-8b-instruct-fp8`), independently-failable from retrieval.
-- **Durable Objects** — `ThreadArbiterDO`, one instance per thread, arbitrates the `claim` → `resolve` lifecycle with an idempotency cache in its own SQLite storage, called from Server Actions as RPC via a service binding.
-- **`scheduled()` cron** — sweeps stale claims back to `open` every 15 minutes, via a `custom-worker.ts` entry point that wraps OpenNext's generated fetch handler alongside the Durable Object export and the cron handler.
-- **R2** — transcript storage. Uploads and downloads go straight from the browser to R2 via presigned URLs (`aws4fetch`), never through the Worker.
+## What's actually running on Cloudflare
+
+| Service | Resource | Binding (`wrangler.jsonc`) | What it's for |
+|---|---|---|---|
+| **Workers** | `meeting-intelligence` | — | The whole app — Next.js App Router SSR, Server Actions, and every API route, via `custom-worker.ts` wrapping OpenNext's generated fetch handler. |
+| **D1** (SQLite) | `meeting-intelligence-db` | `DB` | The relational core — `meetings`, `facts`, `threads`. Schema and migrations managed with [Drizzle ORM](https://orm.drizzle.team/) (`frontend/src/db/`, `frontend/migrations/`). |
+| **Workers KV** | `meeting-intelligence-cache` | `CACHE` | Read-through cache for the recently-resolved-threads list; busted on every resolve so it never serves stale data past the write itself. |
+| **Vectorize** | `meeting-intelligence-facts` | `VECTORIZE` | Vector index (768-dim, cosine) over every fact's embedding — this is what makes `/search` semantic instead of keyword matching. |
+| **Workers AI** | — | `AI` | Two models: `@cf/baai/bge-base-en-v1.5` embeds facts on write and queries at search time; `@cf/meta/llama-3.1-8b-instruct-fp8` generates the grounded, cited answer on `/search` and `/ask` — layered on top of retrieval, independently-failable (an AI outage degrades to plain search results, never a 500). |
+| **Durable Objects** | `ThreadArbiterDO` | `THREAD_ARBITER` | One instance per thread (`idFromName`), arbitrating the `claim` → `resolve` lifecycle so two people racing to close the same thread can't both win. Idempotency cache lives in the DO's own SQLite storage. Called from Server Actions as real RPC (`stub.claim(...)`), not HTTP. |
+| **Cron Triggers** | `*/15 * * * *` | — | `scheduled()` in `custom-worker.ts` sweeps threads claimed 30+ minutes ago back to `open`, with an idempotent UPSERT for its own run bookkeeping. |
+| **R2** | `meeting-intelligence-transcripts` | `TRANSCRIPTS` | Transcript file storage. Uploads and downloads go straight from the browser to R2 via presigned URLs (`aws4fetch`, signed with a dedicated R2 API token) — the file bytes never pass through the Worker. |
+| **Service bindings** | `meeting-intelligence` (self) | `WORKER_SELF_REFERENCE` | OpenNext's own internal loopback for ISR/cache-purge — not app code we wrote. |
+| **Images** | — | `IMAGES` | Next.js `<Image>` optimization, handled natively by Cloudflare instead of a separate image service. |
+| **Workers Assets** | `.open-next/assets` | `ASSETS` | Static files (JS/CSS chunks, favicon) served directly by the Workers runtime, no separate CDN/bucket. |
+
+D1, KV, Durable Objects, and Workers AI all have local simulators (`wrangler dev`/`preview` runs them against local state). **Vectorize and R2 don't** — even in local preview, those two calls hit the real remote resources on the live Cloudflare account (that's what `"remote": true` on the Vectorize binding means).
 
 ## Repo layout
 
