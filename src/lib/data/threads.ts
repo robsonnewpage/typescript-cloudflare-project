@@ -21,6 +21,7 @@ export interface OpenThreadView {
   thread: Thread;
   fact: Fact;
   meetingTitle: string;
+  meetingParticipants: string[];
 }
 
 function toView(row: {
@@ -32,6 +33,7 @@ function toView(row: {
     thread: row.threads as Thread,
     fact: row.facts as Fact,
     meetingTitle: row.meetings.title,
+    meetingParticipants: row.meetings.participants,
   };
 }
 

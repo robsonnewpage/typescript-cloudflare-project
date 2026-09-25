@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { claimThreadSchema } from "@/lib/validation/claim-thread-schema";
 import { resolveThreadSchema } from "@/lib/validation/resolve-thread-schema";
+import { reopenThreadSchema } from "@/lib/validation/reopen-thread-schema";
 
 export interface ClaimThreadState {
   status: "idle" | "error" | "success";
@@ -14,6 +15,12 @@ export interface ClaimThreadState {
 export interface ResolveThreadState {
   status: "idle" | "error" | "success";
   fieldErrors?: Partial<Record<"threadId" | "resolvedBy" | "resolutionStatement" | "idempotencyKey", string[]>>;
+  formError?: string;
+}
+
+export interface ReopenThreadState {
+  status: "idle" | "error" | "success";
+  fieldErrors?: Partial<Record<"threadId" | "reopenedBy" | "idempotencyKey", string[]>>;
   formError?: string;
 }
 
@@ -71,6 +78,32 @@ export async function resolveThread(_prevState: ResolveThreadState, formData: Fo
   }
   if (result === "already_resolved") {
     return { status: "error", formError: "Someone already resolved this thread." };
+  }
+  if (result === "not_found") {
+    return { status: "error", formError: "This thread no longer exists." };
+  }
+
+  revalidatePath("/threads");
+  revalidatePath(`/threads/${parsed.data.threadId}`);
+  return { status: "success" };
+}
+
+export async function reopenThread(_prevState: ReopenThreadState, formData: FormData): Promise<ReopenThreadState> {
+  const parsed = reopenThreadSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { status: "error", fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  const arbiter = await getThreadArbiter();
+  const stub = arbiter.get(arbiter.idFromName(parsed.data.threadId));
+  const result = await stub.reopen({
+    threadId: parsed.data.threadId,
+    reopenedBy: parsed.data.reopenedBy,
+    idempotencyKey: parsed.data.idempotencyKey,
+  });
+
+  if (result === "not_resolved") {
+    return { status: "error", formError: "This thread is already open again — someone reopened it first." };
   }
   if (result === "not_found") {
     return { status: "error", formError: "This thread no longer exists." };

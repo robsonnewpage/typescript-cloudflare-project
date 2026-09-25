@@ -6,7 +6,9 @@ import { resolveThreadSchema } from "@/lib/validation/resolve-thread-schema";
 
 const initialState: ResolveThreadState = { status: "idle" };
 
-export function ResolveThreadForm({ threadId }: { threadId: string }) {
+// The name comes from ThreadActions' shared picker; it's posted as a hidden
+// field so the Server Action and its schema stay unchanged.
+export function ResolveThreadForm({ threadId, resolvedBy }: { threadId: string; resolvedBy: string }) {
   const [state, formAction, pending] = useActionState(resolveThread, initialState);
   const [liveError, setLiveError] = useState<string | null>(null);
 
@@ -25,35 +27,13 @@ export function ResolveThreadForm({ threadId }: { threadId: string }) {
   }
 
   if (state.status === "success") {
-    return (
-      <div className="rounded-xl border border-success-muted bg-surface p-6">
-        <p className="font-medium text-success">Resolved. Nice work closing the loop.</p>
-      </div>
-    );
+    return <p className="font-medium text-success">Resolved. Nice work closing the loop.</p>;
   }
 
   return (
-    <form action={submitWithFreshIdempotencyKey} className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-5">
+    <form action={submitWithFreshIdempotencyKey} className="flex flex-col gap-4 border-t border-border pt-5">
       <input type="hidden" name="threadId" value={threadId} />
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="resolvedBy" className="text-sm font-medium text-foreground-muted">
-          Your name
-        </label>
-        <input
-          id="resolvedBy"
-          name="resolvedBy"
-          type="text"
-          required
-          disabled={pending}
-          className="rounded-lg border border-border-strong bg-background px-3 py-2 text-sm text-foreground placeholder:text-foreground-subtle focus:border-accent focus:outline-none disabled:opacity-50"
-        />
-        {state.fieldErrors?.resolvedBy && (
-          <p role="alert" className="text-sm text-danger">
-            {state.fieldErrors.resolvedBy[0]}
-          </p>
-        )}
-      </div>
+      <input type="hidden" name="resolvedBy" value={resolvedBy} />
 
       <div className="flex flex-col gap-1">
         <label htmlFor="resolutionStatement" className="text-sm font-medium text-foreground-muted">
@@ -77,15 +57,15 @@ export function ResolveThreadForm({ threadId }: { threadId: string }) {
         )}
       </div>
 
-      {state.formError && (
+      {(state.formError || state.fieldErrors?.resolvedBy) && (
         <p role="alert" className="text-sm text-danger">
-          {state.formError}
+          {state.formError ?? state.fieldErrors?.resolvedBy?.[0]}
         </p>
       )}
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !resolvedBy}
         className="self-start rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground shadow-[0_0_20px_-4px_var(--accent)] transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Resolving…" : "Resolve thread"}

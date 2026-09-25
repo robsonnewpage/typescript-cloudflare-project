@@ -18,6 +18,7 @@ import { threads } from "@/db/schema";
 
 export type ClaimOutcome = "ok" | "already_claimed" | "already_resolved" | "not_found";
 export type ResolveOutcome = "ok" | "already_resolved" | "not_claimed_by_you" | "not_found";
+export type ReopenOutcome = "ok" | "not_resolved" | "not_found";
 
 interface ClaimInput {
   threadId: string;
@@ -29,6 +30,12 @@ interface ResolveInput {
   threadId: string;
   resolvedBy: string;
   resolutionStatement: string;
+  idempotencyKey: string;
+}
+
+interface ReopenInput {
+  threadId: string;
+  reopenedBy: string;
   idempotencyKey: string;
 }
 
@@ -115,11 +122,50 @@ export class ThreadArbiterDO extends DurableObject<CloudflareEnv> {
       return this.cacheOutcome(input.idempotencyKey, "not_claimed_by_you");
     }
 
-    await Promise.all(
-      RECENTLY_RESOLVED_CACHE_LIMITS.map((limit) => this.env.CACHE.delete(`${RECENTLY_RESOLVED_CACHE_KEY}:${limit}`)),
-    );
+    await this.bustRecentlyResolvedCache();
 
     console.log(`[AUDIT] thread.resolved threadId=${input.threadId} resolvedBy="${input.resolvedBy}" at=${now}`);
     return this.cacheOutcome(input.idempotencyKey, "ok");
+  }
+
+  // resolved -> open. Clears the claim and the resolution outright rather
+  // than keeping a history (no migration); the audit line below is where the
+  // previous resolution survives.
+  async reopen(input: ReopenInput): Promise<ReopenOutcome> {
+    const cached = this.getCachedOutcome<ReopenOutcome>(input.idempotencyKey);
+    if (cached) return cached;
+
+    const db = drizzle(this.env.DB, { schema });
+    const now = new Date().toISOString();
+
+    const [previous] = await db
+      .select({ resolvedBy: threads.resolvedBy, resolutionStatement: threads.resolutionStatement })
+      .from(threads)
+      .where(eq(threads.id, input.threadId))
+      .limit(1);
+
+    const updated = await db
+      .update(threads)
+      .set({ status: "open", claimedBy: null, claimedAt: null, resolvedBy: null, resolvedAt: null, resolutionStatement: null })
+      .where(and(eq(threads.id, input.threadId), eq(threads.status, "resolved")))
+      .returning({ id: threads.id });
+
+    if (updated.length === 0) {
+      return this.cacheOutcome(input.idempotencyKey, previous ? "not_resolved" : "not_found");
+    }
+
+    // The thread just left the resolved list, so the cached copy is stale too.
+    await this.bustRecentlyResolvedCache();
+
+    console.log(
+      `[AUDIT] thread.reopened threadId=${input.threadId} reopenedBy="${input.reopenedBy}" previousResolvedBy="${previous?.resolvedBy}" previousResolution=${JSON.stringify(previous?.resolutionStatement)} at=${now}`,
+    );
+    return this.cacheOutcome(input.idempotencyKey, "ok");
+  }
+
+  private async bustRecentlyResolvedCache(): Promise<void> {
+    await Promise.all(
+      RECENTLY_RESOLVED_CACHE_LIMITS.map((limit) => this.env.CACHE.delete(`${RECENTLY_RESOLVED_CACHE_KEY}:${limit}`)),
+    );
   }
 }
