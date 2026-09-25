@@ -22,6 +22,7 @@ export interface OpenThreadView {
   fact: Fact;
   meetingTitle: string;
   meetingParticipants: string[];
+  meetingHasTranscript: boolean;
 }
 
 function toView(row: {
@@ -34,6 +35,7 @@ function toView(row: {
     fact: row.facts as Fact,
     meetingTitle: row.meetings.title,
     meetingParticipants: row.meetings.participants,
+    meetingHasTranscript: row.meetings.transcriptKey !== null,
   };
 }
 

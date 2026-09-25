@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getThreadDetail } from "@/lib/data/threads";
 import { ThreadActions } from "@/components/thread-actions";
+import { FactSourceButton } from "@/components/fact-source-button";
 
 // Same reasoning as threads/page.tsx — read D1 live on every request.
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ export default async function ThreadDetailPage(props: PageProps<"/threads/[threa
   const detail = await getThreadDetail(threadId);
   if (!detail) notFound();
 
-  const { thread, fact, meetingTitle, meetingParticipants } = detail;
+  const { thread, fact, meetingTitle, meetingParticipants, meetingHasTranscript } = detail;
 
   return (
     <article className="mx-auto max-w-2xl px-6 py-12">
@@ -23,6 +24,15 @@ export default async function ThreadDetailPage(props: PageProps<"/threads/[threa
           — {fact.speakers.join(", ")}, turns {fact.startTurnIndex}–{fact.endTurnIndex}
         </footer>
       </blockquote>
+
+      {/* Same viewer search uses: opens the meeting's transcript with this quote highlighted. */}
+      {meetingHasTranscript && (
+        <div className="mt-3 w-fit">
+          <FactSourceButton meetingId={fact.meetingId} quote={fact.quote}>
+            <span className="text-sm text-accent-strong hover:underline">View in transcript →</span>
+          </FactSourceButton>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col gap-6">
         {thread.status === "resolved" && (
