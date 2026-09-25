@@ -1,9 +1,11 @@
 import "server-only";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getDb } from "@/db/client";
 import { facts, meetings, threads } from "@/db/schema";
 import type { Meeting } from "@/model/meeting";
+import type { Fact } from "@/model/fact";
+import type { ThreadStatus } from "@/model/thread";
 
 export async function listMeetings(): Promise<Meeting[]> {
   const db = await getDb();
@@ -71,4 +73,32 @@ export async function createMeeting(input: {
   };
   await db.insert(meetings).values(meeting);
   return meeting;
+}
+
+export interface MeetingFactView {
+  fact: Fact;
+  // Only open_thread facts have a thread (same id); null for the other kinds.
+  threadStatus: ThreadStatus | null;
+  claimedBy: string | null;
+  resolvedBy: string | null;
+}
+
+// Every fact from one meeting in transcript order, each with its thread's
+// state when it has one — so the meeting page can show what was decided,
+// promised and left open, and how far each open question has got.
+export async function listMeetingFacts(meetingId: string): Promise<MeetingFactView[]> {
+  const db = await getDb();
+  const rows = await db
+    .select({ fact: facts, threadStatus: threads.status, claimedBy: threads.claimedBy, resolvedBy: threads.resolvedBy })
+    .from(facts)
+    .leftJoin(threads, eq(threads.id, facts.id))
+    .where(eq(facts.meetingId, meetingId))
+    .orderBy(asc(facts.startTurnIndex));
+
+  return rows.map((row) => ({
+    fact: row.fact as Fact,
+    threadStatus: row.threadStatus,
+    claimedBy: row.claimedBy,
+    resolvedBy: row.resolvedBy,
+  }));
 }

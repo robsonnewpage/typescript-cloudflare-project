@@ -84,3 +84,19 @@ export async function getThreadDetail(threadId: string): Promise<OpenThreadView 
 
   return rows.length > 0 ? toView(rows[0]) : null;
 }
+
+// Current status of the given threads, for pages that show facts from
+// elsewhere (search results) and want each open thread's progress alongside.
+export async function getThreadStatuses(
+  threadIds: string[],
+): Promise<Map<string, { status: Thread["status"]; claimedBy: string | null; resolvedBy: string | null }>> {
+  if (threadIds.length === 0) return new Map();
+  const db = await getDb();
+  const rows = await db
+    .select({ id: threads.id, status: threads.status, claimedBy: threads.claimedBy, resolvedBy: threads.resolvedBy })
+    .from(threads)
+    .where(inArray(threads.id, threadIds));
+  return new Map(
+    rows.map((row) => [row.id, { status: row.status, claimedBy: row.claimedBy, resolvedBy: row.resolvedBy }]),
+  );
+}
