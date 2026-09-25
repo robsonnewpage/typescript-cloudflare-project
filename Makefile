@@ -3,41 +3,41 @@
 
 help:
 	@echo "Targets:"
-	@echo "  install        install deps in frontend/"
-	@echo "  dev            run the frontend dev server (:3000)"
-	@echo "  typecheck      next typegen + tsc --noEmit in frontend/"
-	@echo "  lint           lint the frontend"
-	@echo "  build          production build the frontend"
-	@echo "  clean          remove generated build artifacts in frontend/"
+	@echo "  install        install deps"
+	@echo "  dev            run the Next.js dev server (:3000)"
+	@echo "  typecheck      next typegen + tsc --noEmit"
+	@echo "  lint           lint the app"
+	@echo "  build          production build the app"
+	@echo "  clean          remove generated build artifacts"
 	@echo "  cf-preview     build + locally preview on the Cloudflare Workers runtime, no account needed"
 	@echo "  cf-typegen     generate Cloudflare binding types"
 	@echo "  cf-deploy      deploy to Cloudflare — requires login, run manually only"
 
 install:
-	cd frontend && npm install
+	npm install
 
 dev:
-	cd frontend && npm run dev
+	npm run dev
 
 typecheck:
-	cd frontend && npx next typegen && npx tsc --noEmit
+	npx next typegen && npx tsc --noEmit
 
 lint:
-	cd frontend && npm run lint
+	npm run lint
 
 build:
-	cd frontend && npm run build
+	npm run build
 
 clean:
-	rm -rf frontend/node_modules frontend/.next frontend/.open-next frontend/.wrangler frontend/tsconfig.tsbuildinfo
+	rm -rf node_modules .next .open-next .wrangler tsconfig.tsbuildinfo
 
 cf-preview:
-	cd frontend && npm run preview
+	npm run preview
 
 cf-typegen:
-	cd frontend && npm run cf-typegen
+	npm run cf-typegen
 
 # Deploys to a live Cloudflare account. Requires `wrangler login` and explicit
 # human confirmation — do not run this as part of an automated setup.
 cf-deploy:
-	cd frontend && npm run deploy
+	npm run deploy
